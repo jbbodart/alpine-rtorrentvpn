@@ -1,0 +1,95 @@
+
+# Instance layout
+session.path.set = (cat, "/data/session/")
+directory.default.set = (cat, "/data/incomplete/")
+#log.execute = (cat, "/data/session/execute.log")
+#log.open_file = "log", ("/data/session/rtorrent.log")
+#log.add_output = "info", "log"
+#log.xmlrpc = (cat, "/data/session/xmlrpc.log")
+
+# Other operational settings
+encoding.add = utf8
+system.umask.set = 0027
+system.cwd.set = (directory.default)
+pieces.hash.on_completion.set = yes
+network.port_range.set = 49314-49314
+network.port_random.set = no
+trackers.use_udp.set = yes
+protocol.encryption.set = allow_incoming,try_outgoing,enable_retry
+dht.mode.set = auto
+dht.port.set = 49313
+protocol.pex.set = yes
+pieces.preload.type.set = 1
+
+# Global upload and download rate in KiB. "0" for unlimited.
+throttle.global_down.max_rate.set_kb = 0
+throttle.global_up.max_rate.set_kb = 0
+
+# Maximum number of simultaneous downloads and uploads slots
+throttle.max_downloads.global.set = 300
+throttle.max_uploads.global.set   = 300
+
+# Maximum and minimum number of peers to connect to per torrent while downloading
+throttle.min_peers.normal.set = 99
+throttle.max_peers.normal.set = 100
+
+# Same as above but for seeding completed torrents
+throttle.min_peers.seed.set = -1
+throttle.max_peers.seed.set = -1
+
+# Maximum number of simultaneous downloads and uploads slots per torrent
+throttle.max_downloads.set = 50
+throttle.max_uploads.set = 50
+
+# Set the numwant field sent to the tracker, which indicates how many peers we want.
+trackers.numwant.set = 100
+
+# Set the max amount of memory address space used to mapping file chunks. This refers to memory mapping, not
+#  physical memory allocation. Default: `1GB` (`max_memory_usage`)
+pieces.memory.max.set = 2048M
+
+# Maximum number of connections rtorrent can accept/make
+network.max_open_sockets.set = 999
+
+# Maximum number of open files rtorrent can keep open
+network.max_open_files.set = 600
+
+# Maximum number of simultaneous HTTP request
+network.http.max_open.set = 99
+
+# Send and receive buffer size for socket
+network.receive_buffer.size.set =  4M
+network.send_buffer.size.set    = 12M
+
+# Preloading a piece of a file
+pieces.preload.type.set = 1
+
+# CURL options to add support for nonofficial SSL trackers and peers
+network.http.ssl_verify_host.set = 0
+network.http.ssl_verify_peer.set = 0
+
+# CURL option to lower DNS timeout
+network.http.dns_cache_timeout.set = 25
+
+# Max packet size using xmlrpc
+network.xmlrpc.size_limit.set = 2M
+
+# Set watch directory and move completed torrents
+schedule2 = watch_directory, 5, 5, "load.start_verbose=/data/watch/*.torrent"
+method.insert = d.get_finished_dir, simple, "cat=/data/complete/,$d.custom1="
+method.insert = d.get_data_full_path, simple, "branch=((d.is_multi_file)),((cat,(d.directory))),((cat,(d.directory),/,(d.name)))"
+method.insert = d.move_to_complete, simple, "execute=mkdir,-p,$argument.1=; execute=cp,-rp,$argument.0=,$argument.1=; d.stop=; d.directory.set=$argument.1=; d.start=;d.save_full_session=; execute=rm, -r, $argument.0="
+method.set_key = event.download.finished, move_complete, "d.move_to_complete=$d.get_data_full_path=,$d.get_finished_dir="
+
+# Some scheduled tasks
+schedule2 = untied_directory, 5, 5, "stop_untied=/data/watch/*.torrent"
+schedule2 = scgi_permission, 0, 0, "execute.nothrow=chmod,\"g+w,o=\",/tmp/rtorrent_scgi.sock"
+schedule2 = insufficient_disk_space, 1, 30, close_low_diskspace=500M
+schedule2 = session_save, 1200, 43200, ((session.save))
+
+# For rutorrent
+encoding_list = UTF-8
+scgi_local = /tmp/rtorrent_scgi.sock
+
+# Start rutorrent plugins
+execute2 = {sh,-c,/usr/bin/php7 /var/www/rutorrent/php/initplugins.php &}
