@@ -128,9 +128,10 @@ RUN sed -i -e "s/loglevel=info/loglevel=error/g" /etc/supervisord.conf
 COPY config/rtorrentvpn_supervisord.conf /etc/supervisor.d/rtorrentvpn.ini
 
 # Set-up rTorrent
-COPY --chown=rtorrent:rtorrent config/rtorrent.rc /home/rtorrent/rtorrent.rc
+COPY config/rtorrent.rc /home/rtorrent/rtorrent.rc
 # Set-up ruTorrent
-COPY --chown=rtorrent:rtorrent config/rutorrent_config.php /var/www/rutorrent/conf/config.php
+COPY config/rutorrent_config.php /var/www/rutorrent/conf/config.php
+RUN chown rtorrent:rtorrent /home/rtorrent/rtorrent.rc /var/www/rutorrent/conf/config.php
 # COPY config/rutorrent_plugins.ini /var/www/rutorrent/conf/plugins.ini
 # COPY config/rutorrent_autotools.dat /var/www/rutorrent/share/settings/autotools.dat
 # RUN sed -i -e "s/\$autowatch_interval =.*/\$autowatch_interval = 10;/g" /var/www/rutorrent/plugins/autotools/conf.php
