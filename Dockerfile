@@ -100,6 +100,9 @@ RUN NB_CORES=${BUILD_CORES-$(getconf _NPROCESSORS_CONF)} \
   && mv /tmp/config.js config.js \
   && npm install -g node-gyp \
   && npm install \
+  # workaround for "Illegal instruction" when using argon2 on some CPUs
+  && sed -i -e "s/\"-march=native\", //g" /usr/local/flood/node_modules/argon2/binding.gyp \
+  && npm rebuild argon2 \
   && npm cache clean --force \
   && npm run build \
 
