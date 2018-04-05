@@ -98,7 +98,8 @@ RUN NB_CORES=${BUILD_CORES-$(getconf _NPROCESSORS_CONF)} \
   && cd /usr/local/flood \
   && git clone https://github.com/jfurrow/flood . \
   && mv /tmp/config.js config.js \
-  && npm install --build-from-source=bcrypt \
+  && npm install -g node-gyp \
+  && npm install \
   && npm cache clean --force \
   && npm run build \
 
