@@ -24,12 +24,13 @@ fi
 
 echo_log "[info] Sanity checks..."
 # check kernel module
-for i in "tun" ; do
-    if [[ $(lsmod | awk -v module="$i" '$1==module {print $1}' | wc -l) -eq 0 ]] ; then
-        echo_log "[crit] Missing $i kernel module. Please insmod and restart container"
-        exit 1
-    fi
-done
+if [[ $(lsmod | awk -v module="tun" '$1==module {print $1}' | wc -l) -eq 0 ]] ; then
+    echo_log "[warn] $i kernel module not loaded. Please insmod and restart container if tun support is not built in the kernel."
+fi
+
+echo_log "[info] setting up DNS server..."
+echo "nameserver ${DNS_SERVER_IP}" > /etc/resolv.conf
+chmod -w /etc/resolv.conf
 
 # check VPN configuration
 VPN_CONFIG=$(find /config/ -name "*.ovpn" -print)
@@ -45,10 +46,7 @@ fi
 
 echo_log "[info] Configuring iptables..."
 
-# set default policy
-iptables -P INPUT DROP
-iptables -P OUTPUT DROP
-iptables -P FORWARD DROP
+NET_IF=$(ip link | grep eth0 | cut -d":" -f2)
 
 # allow already established connections
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
@@ -64,27 +62,33 @@ iptables -A OUTPUT -o tun0 -j ACCEPT
 VPN_PROTOCOL=$(/usr/bin/awk '$1=="proto"{print $2}' "${VPN_CONFIG}")
 OLDIFS=${IFS}; IFS=$'\n';
 for server in $(/usr/bin/awk '$1=="remote"' "${VPN_CONFIG}") ; do
-  VPN_IP=$(echo ${server} | cut -d" " -f2);
+  VPN_SERVER=$(echo ${server} | cut -d" " -f2);
   VPN_PORT=$(echo ${server} | cut -d" " -f3);
-  iptables -A INPUT -i eth0 -s ${VPN_IP} -p ${VPN_PROTOCOL} --sport ${VPN_PORT} -j ACCEPT
-  iptables -A OUTPUT -o eth0 -d ${VPN_IP} -p ${VPN_PROTOCOL} --dport ${VPN_PORT} -j ACCEPT
+  if expr "${VPN_SERVER}" : '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null; then
+    VPN_IP="${VPN_SERVER}"
+  else
+    VPN_IP=$(getent ahostsv4 "${VPN_SERVER}" | grep STREAM | head -n 1 | cut -d" " -f 1)
+  fi
+  iptables -A INPUT -i ${NET_IF} -s ${VPN_IP} -p ${VPN_PROTOCOL} --sport ${VPN_PORT} -j ACCEPT
+  iptables -A OUTPUT -o ${NET_IF} -d ${VPN_IP} -p ${VPN_PROTOCOL} --dport ${VPN_PORT} -j ACCEPT
 done ;
 IFS=${OLDIFS}
 
 # allow nginx for rutorrent/flood
-iptables -A INPUT -i eth0 -p tcp --dport 8080 -j ACCEPT
-iptables -A OUTPUT -o eth0 -p tcp --sport 8080 -j ACCEPT
+iptables -A INPUT -i ${NET_IF} -p tcp --dport 8080 -j ACCEPT
+iptables -A OUTPUT -o ${NET_IF} -p tcp --sport 8080 -j ACCEPT
 
 # Loopback
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
+# set default policy (in the end so that we can use DNS before VPN is up)
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
 echo_log "[info] Done. iptables rules :"
 iptables -S
-
-echo_log "[info] setting up DNS server..."
-echo "nameserver ${DNS_SERVER_IP}" > /etc/resolv.conf
-chmod -w /etc/resolv.conf
 
 echo_log "[info] creating data directories..."
 mkdir -p /data/session /data/complete /data/incomplete /data/watch /data/flood/db
