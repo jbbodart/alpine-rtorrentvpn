@@ -46,7 +46,7 @@ fi
 
 echo_log "[info] Configuring iptables..."
 
-NET_IF=$(ip link | grep eth0 | cut -d":" -f2)
+NET_IF=$(ip link | grep eth0 | cut -d":" -f2 | tr -d ' ')
 
 # allow already established connections
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
