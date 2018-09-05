@@ -8,7 +8,7 @@ ENV RTORRENT_LISTEN_PORT=49314
 ENV RTORRENT_DHT_PORT=49313
 ENV DNS_SERVER_IP='9.9.9.9'
 
-ARG MEDIAINFO_VER="18.05"
+ARG MEDIAINFO_VER="18.08"
 
 # Add flood configuration before build
 COPY config/flood_config.js /tmp/config.js
