@@ -8,7 +8,7 @@ ENV RTORRENT_LISTEN_PORT=49314
 ENV RTORRENT_DHT_PORT=49313
 ENV DNS_SERVER_IP='9.9.9.9'
 
-ARG MEDIAINFO_VER="18.08"
+ARG MEDIAINFO_VER="18.08.1"
 
 # Add flood configuration before build
 COPY config/flood_config.js /tmp/config.js
@@ -32,7 +32,7 @@ RUN NB_CORES=${BUILD_CORES-$(getconf _NPROCESSORS_CONF)} \
 # compile xmlrpc-c
   && cd /tmp \
   && curl -O https://netix.dl.sourceforge.net/project/xmlrpc-c/Xmlrpc-c%20Super%20Stable/1.39.13/xmlrpc-c-1.39.13.tgz \
-  && tar zxvf xmlrpc-c-1.39.13.tgz
+  && tar zxvf xmlrpc-c-1.39.13.tgz \
   && cd xmlrpc-c-1.39.13 \
   && ./configure --enable-libxml2-backend --disable-cgi-server --disable-libwww-client --disable-wininet-client --disable-abyss-server \
   && make -j ${NB_CORES} \
