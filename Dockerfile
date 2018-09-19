@@ -8,11 +8,7 @@ ENV RTORRENT_LISTEN_PORT=49314
 ENV RTORRENT_DHT_PORT=49313
 ENV DNS_SERVER_IP='9.9.9.9'
 
-<<<<<<< HEAD
 ARG MEDIAINFO_VER="18.08.1"
-=======
-ARG MEDIAINFO_VER="18.08"
->>>>>>> parent of 2c61a13... Use Alpine-provided packages for rtorrent/mktorrent/xmlrpc-c/mediainfo
 
 # Add flood configuration before build
 COPY config/flood_config.js /tmp/config.js
@@ -35,19 +31,10 @@ RUN NB_CORES=${BUILD_CORES-$(getconf _NPROCESSORS_CONF)} \
 
 # compile xmlrpc-c
   && cd /tmp \
-<<<<<<< HEAD
   && curl -O https://netix.dl.sourceforge.net/project/xmlrpc-c/Xmlrpc-c%20Super%20Stable/1.39.13/xmlrpc-c-1.39.13.tgz \
   && tar zxvf xmlrpc-c-1.39.13.tgz
   && cd xmlrpc-c-1.39.13 \
   && ./configure --enable-libxml2-backend --disable-cgi-server --disable-libwww-client --disable-wininet-client --disable-abyss-server \
-=======
-  && git clone https://github.com/mirror/xmlrpc-c.git \
-  && cd /tmp/xmlrpc-c/stable \
-  && sed 's/xmlParserCtx /xmlParserCtxt/g' -i src/xmlrpc_libxml2.c \
-  && ./configure --enable-libxml2-backend --disable-cgi-server --disable-libwww-client --disable-wininet-client --disable-abyss-server \
-  && mkdir include/curl \
-  && touch include/curl/types.h \
->>>>>>> parent of 2c61a13... Use Alpine-provided packages for rtorrent/mktorrent/xmlrpc-c/mediainfo
   && make -j ${NB_CORES} \
   && make install \
   && make -C tools -j ${NB_CORES} \
