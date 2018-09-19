@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.8
 
 LABEL maintainer="jbbodart"
 
@@ -31,12 +31,10 @@ RUN NB_CORES=${BUILD_CORES-$(getconf _NPROCESSORS_CONF)} \
 
 # compile xmlrpc-c
   && cd /tmp \
-  && git clone https://github.com/mirror/xmlrpc-c.git \
-  && cd /tmp/xmlrpc-c/stable \
-  && sed 's/xmlParserCtx /xmlParserCtxt/g' -i src/xmlrpc_libxml2.c \
+  && curl -O https://netix.dl.sourceforge.net/project/xmlrpc-c/Xmlrpc-c%20Super%20Stable/1.39.13/xmlrpc-c-1.39.13.tgz \
+  && tar zxvf xmlrpc-c-1.39.13.tgz
+  && cd xmlrpc-c-1.39.13 \
   && ./configure --enable-libxml2-backend --disable-cgi-server --disable-libwww-client --disable-wininet-client --disable-abyss-server \
-  && mkdir include/curl \
-  && touch include/curl/types.h \
   && make -j ${NB_CORES} \
   && make install \
   && make -C tools -j ${NB_CORES} \
