@@ -12,4 +12,4 @@ rm -f /data/session/rtorrent.lock
 rm -f /tmp/rtorrent_scgi.socket
 
 # run rtorrent
-su-exec rtorrent /usr/local/bin/rtorrent -n -o import=/home/rtorrent/rtorrent.rc > /dev/null
+su-exec rtorrent /usr/bin/rtorrent -n -o import=/home/rtorrent/rtorrent.rc > /dev/null
