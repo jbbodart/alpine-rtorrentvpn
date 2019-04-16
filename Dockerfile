@@ -1,4 +1,4 @@
-FROM alpine:3.8
+FROM alpine:3.9
 
 LABEL maintainer="jbbodart"
 
@@ -8,7 +8,7 @@ ENV RTORRENT_LISTEN_PORT=49314
 ENV RTORRENT_DHT_PORT=49313
 ENV DNS_SERVER_IP='9.9.9.9'
 
-ARG MEDIAINFO_VER="18.08.1"
+ARG MEDIAINFO_VER="18.12"
 
 # Add flood configuration before build
 COPY config/flood_config.js /tmp/config.js
